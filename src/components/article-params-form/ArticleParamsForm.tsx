@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, FormEvent } from 'react';
+import clsx from 'clsx';
 import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
 import { Text } from 'src/ui/text';
@@ -12,13 +13,26 @@ import {
 	fontColors,
 	backgroundColors,
 	contentWidthArr,
+	defaultArticleState,
+	ArticleStateType,
 	OptionType,
 } from 'src/constants/articleProps';
 
 import styles from './ArticleParamsForm.module.scss';
 
-export const ArticleParamsForm = () => {
-	const [isOpen, setIsOpen] = useState(false);
+const GAP_HEIGHT = '50px';
+
+// Расширили пропсы: теперь принимаем текущее состояние статьи
+interface ArticleParamsFormProps {
+	onApply: (state: ArticleStateType) => void;
+	currentAppState: ArticleStateType;
+}
+
+export const ArticleParamsForm = ({
+	onApply,
+	currentAppState,
+}: ArticleParamsFormProps) => {
+	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const formRef = useRef<HTMLDivElement>(null);
 
 	const [fontFamily, setFontFamily] = useState<OptionType>(
@@ -35,6 +49,43 @@ export const ArticleParamsForm = () => {
 
 	const toggleForm = () => {
 		setIsOpen(!isOpen);
+	};
+
+	// ЭФФЕКТ СИНХРОНИЗАЦИИ (строго по ТЗ):
+	// Когда сайдбар открывается, мы наполняем форму теми настройками, которые реально применены к статье сейчас
+	useEffect(() => {
+		if (isOpen) {
+			setFontFamily(currentAppState.fontFamilyOption);
+			setFontSize(currentAppState.fontSizeOption);
+			setFontColor(currentAppState.fontColor);
+			setBackgroundColor(currentAppState.backgroundColor);
+			setContentWidth(currentAppState.contentWidth);
+		}
+	}, [isOpen, currentAppState]);
+
+	const handleSubmit = (event: FormEvent) => {
+		event.preventDefault();
+
+		const newState: ArticleStateType = {
+			fontFamilyOption: fontFamily,
+			fontSizeOption: fontSize,
+			fontColor: fontColor,
+			backgroundColor: backgroundColor,
+			contentWidth: contentWidth,
+		};
+
+		onApply(newState);
+		setIsOpen(false);
+	};
+
+	const handleReset = () => {
+		setFontFamily(defaultArticleState.fontFamilyOption);
+		setFontSize(defaultArticleState.fontSizeOption);
+		setFontColor(defaultArticleState.fontColor);
+		setBackgroundColor(defaultArticleState.backgroundColor);
+		setContentWidth(defaultArticleState.contentWidth);
+
+		onApply(defaultArticleState);
 	};
 
 	useEffect(() => {
@@ -56,20 +107,23 @@ export const ArticleParamsForm = () => {
 		<div ref={formRef}>
 			<ArrowButton isOpen={isOpen} onClick={toggleForm} />
 			<aside
-				className={`${styles.container} ${
-					isOpen ? styles.container_open : ''
-				}`}>
-				<form className={styles.form}>
+				className={clsx(styles.container, isOpen && styles.container_open)}>
+				<form className={styles.form} onSubmit={handleSubmit}>
 					<Text as='h2' size={31} weight={800} uppercase>
 						Задайте параметры
 					</Text>
-					<Separator />
+
+					<div style={{ height: GAP_HEIGHT }} />
+
 					<Select
 						selected={fontFamily}
 						options={fontFamilyOptions}
 						onChange={setFontFamily}
 						title='Шрифт'
 					/>
+
+					<div style={{ height: GAP_HEIGHT }} />
+
 					<RadioGroup
 						name='fontSize'
 						options={fontSizeOptions}
@@ -78,26 +132,42 @@ export const ArticleParamsForm = () => {
 						title='Размер шрифта'
 					/>
 
+					<div style={{ height: GAP_HEIGHT }} />
+
 					<Select
 						selected={fontColor}
 						options={fontColors}
 						onChange={setFontColor}
 						title='Цвет шрифта'
 					/>
+
+					<div style={{ height: GAP_HEIGHT }} />
+					<Separator />
+					<div style={{ height: GAP_HEIGHT }} />
+
 					<Select
 						selected={backgroundColor}
 						options={backgroundColors}
 						onChange={setBackgroundColor}
 						title='Цвет фона'
 					/>
+
+					<div style={{ height: GAP_HEIGHT }} />
+
 					<Select
 						selected={contentWidth}
 						options={contentWidthArr}
 						onChange={setContentWidth}
 						title='Ширина контента'
 					/>
+
 					<div className={styles.bottomContainer}>
-						<Button title='Сбросить' htmlType='reset' type='clear' />
+						<Button
+							title='Сбросить'
+							htmlType='reset'
+							type='clear'
+							onClick={handleReset}
+						/>
 						<Button title='Применить' htmlType='submit' type='apply' />
 					</div>
 				</form>
