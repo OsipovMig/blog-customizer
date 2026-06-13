@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, FormEvent } from 'react';
 import clsx from 'clsx';
 import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
@@ -20,50 +20,37 @@ import {
 
 import styles from './ArticleParamsForm.module.scss';
 
-const GAP_HEIGHT = '50px';
-
 interface ArticleParamsFormProps {
 	onApply: (state: ArticleStateType) => void;
-	currentAppState: ArticleStateType;
 }
 
-export const ArticleParamsForm = ({
-	onApply,
-	currentAppState,
-}: ArticleParamsFormProps) => {
-	const [isOpen, setIsOpen] = useState<boolean>(false);
+export const ArticleParamsForm = ({ onApply }: ArticleParamsFormProps) => {
+	const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
 	const formRef = useRef<HTMLDivElement>(null);
 
-	// Все состояния настроены строго с индексами [0] по вашему правилу
 	const [fontFamily, setFontFamily] = useState<OptionType>(
-		fontFamilyOptions[0]
+		defaultArticleState.fontFamilyOption
 	);
-	const [fontSize, setFontSize] = useState<OptionType>(fontSizeOptions[0]);
-	const [fontColor, setFontColor] = useState<OptionType>(fontColors[0]);
+	const [fontSize, setFontSize] = useState<OptionType>(
+		defaultArticleState.fontSizeOption
+	);
+	const [fontColor, setFontColor] = useState<OptionType>(
+		defaultArticleState.fontColor
+	);
 	const [backgroundColor, setBackgroundColor] = useState<OptionType>(
-		backgroundColors[0]
+		defaultArticleState.backgroundColor
 	);
 	const [contentWidth, setContentWidth] = useState<OptionType>(
-		contentWidthArr[0]
+		defaultArticleState.contentWidth
 	);
 
 	const toggleForm = () => {
-		setIsOpen(!isOpen);
+		setIsFormOpen(!isFormOpen);
 	};
 
-	// Синхронизация формы с текущим состоянием статьи при открытии сайдбара
-	useEffect(() => {
-		if (isOpen) {
-			setFontFamily(currentAppState.fontFamilyOption);
-			setFontSize(currentAppState.fontSizeOption);
-			setFontColor(currentAppState.fontColor);
-			setBackgroundColor(currentAppState.backgroundColor);
-			setContentWidth(currentAppState.contentWidth);
-		}
-	}, [isOpen, currentAppState]);
+	const handleSubmit = (event: FormEvent) => {
+		event.preventDefault();
 
-	// Функция применения настроек (чистая () => void)
-	const handleSubmit = () => {
 		const newState: ArticleStateType = {
 			fontFamilyOption: fontFamily,
 			fontSizeOption: fontSize,
@@ -73,10 +60,12 @@ export const ArticleParamsForm = ({
 		};
 
 		onApply(newState);
+		setIsFormOpen(false);
 	};
 
-	// Функция сброса настроек (чистая () => void)
-	const handleReset = () => {
+	const handleReset = (event: FormEvent) => {
+		event.preventDefault();
+
 		setFontFamily(defaultArticleState.fontFamilyOption);
 		setFontSize(defaultArticleState.fontSizeOption);
 		setFontColor(defaultArticleState.fontColor);
@@ -86,13 +75,12 @@ export const ArticleParamsForm = ({
 		onApply(defaultArticleState);
 	};
 
-	// Закрытие по клику вне сайдбара
 	useEffect(() => {
-		if (!isOpen) return;
+		if (!isFormOpen) return;
 
 		const handleClickOutside = (event: MouseEvent) => {
 			if (formRef.current && !formRef.current.contains(event.target as Node)) {
-				setIsOpen(false);
+				setIsFormOpen(false);
 			}
 		};
 
@@ -100,19 +88,20 @@ export const ArticleParamsForm = ({
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
-	}, [isOpen]);
+	}, [isFormOpen]);
 
 	return (
 		<div ref={formRef}>
-			<ArrowButton isOpen={isOpen} onClick={toggleForm} />
+			<ArrowButton isOpen={isFormOpen} onClick={toggleForm} />
 			<aside
-				className={clsx(styles.container, isOpen && styles.container_open)}>
-				<form className={styles.form} onSubmit={(e) => e.preventDefault()}>
+				className={clsx(styles.container, isFormOpen && styles.container_open)}>
+				<form
+					className={styles.form}
+					onSubmit={handleSubmit}
+					onReset={handleReset}>
 					<Text as='h2' size={31} weight={800} uppercase>
 						Задайте параметры
 					</Text>
-
-					<div style={{ height: GAP_HEIGHT }} />
 
 					<Select
 						selected={fontFamily}
@@ -120,8 +109,6 @@ export const ArticleParamsForm = ({
 						onChange={setFontFamily}
 						title='Шрифт'
 					/>
-
-					<div style={{ height: GAP_HEIGHT }} />
 
 					<RadioGroup
 						name='fontSize'
@@ -131,8 +118,6 @@ export const ArticleParamsForm = ({
 						title='Размер шрифта'
 					/>
 
-					<div style={{ height: GAP_HEIGHT }} />
-
 					<Select
 						selected={fontColor}
 						options={fontColors}
@@ -140,9 +125,7 @@ export const ArticleParamsForm = ({
 						title='Цвет шрифта'
 					/>
 
-					<div style={{ height: GAP_HEIGHT }} />
 					<Separator />
-					<div style={{ height: GAP_HEIGHT }} />
 
 					<Select
 						selected={backgroundColor}
@@ -150,8 +133,6 @@ export const ArticleParamsForm = ({
 						onChange={setBackgroundColor}
 						title='Цвет фона'
 					/>
-
-					<div style={{ height: GAP_HEIGHT }} />
 
 					<Select
 						selected={contentWidth}
@@ -161,18 +142,8 @@ export const ArticleParamsForm = ({
 					/>
 
 					<div className={styles.bottomContainer}>
-						<Button
-							title='Сбросить'
-							htmlType='button'
-							type='clear'
-							onClick={handleReset}
-						/>
-						<Button
-							title='Применить'
-							htmlType='button'
-							type='apply'
-							onClick={handleSubmit}
-						/>
+						<Button title='Сбросить' htmlType='reset' type='clear' />
+						<Button title='Применить' htmlType='submit' type='apply' />
 					</div>
 				</form>
 			</aside>
