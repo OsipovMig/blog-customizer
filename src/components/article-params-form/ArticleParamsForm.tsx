@@ -22,7 +22,6 @@ import styles from './ArticleParamsForm.module.scss';
 
 const GAP_HEIGHT = '50px';
 
-// Расширили пропсы: теперь принимаем текущее состояние статьи
 interface ArticleParamsFormProps {
 	onApply: (state: ArticleStateType) => void;
 	currentAppState: ArticleStateType;
@@ -46,13 +45,10 @@ export const ArticleParamsForm = ({
 	const [contentWidth, setContentWidth] = useState<OptionType>(
 		contentWidthArr[0]
 	);
-
 	const toggleForm = () => {
 		setIsOpen(!isOpen);
 	};
 
-	// ЭФФЕКТ СИНХРОНИЗАЦИИ (строго по ТЗ):
-	// Когда сайдбар открывается, мы наполняем форму теми настройками, которые реально применены к статье сейчас
 	useEffect(() => {
 		if (isOpen) {
 			setFontFamily(currentAppState.fontFamilyOption);
@@ -63,6 +59,7 @@ export const ArticleParamsForm = ({
 		}
 	}, [isOpen, currentAppState]);
 
+	// Функция отправки формы (Применить)
 	const handleSubmit = (event: FormEvent) => {
 		event.preventDefault();
 
@@ -75,10 +72,12 @@ export const ArticleParamsForm = ({
 		};
 
 		onApply(newState);
-		setIsOpen(false);
 	};
 
-	const handleReset = () => {
+	// Функция сброса формы (Сбросить) — теперь принимает FormEvent
+	const handleReset = (event: FormEvent) => {
+		event.preventDefault(); // Запрещаем стандартный жесткий HTML-сброс
+
 		setFontFamily(defaultArticleState.fontFamilyOption);
 		setFontSize(defaultArticleState.fontSizeOption);
 		setFontColor(defaultArticleState.fontColor);
@@ -108,7 +107,11 @@ export const ArticleParamsForm = ({
 			<ArrowButton isOpen={isOpen} onClick={toggleForm} />
 			<aside
 				className={clsx(styles.container, isOpen && styles.container_open)}>
-				<form className={styles.form} onSubmit={handleSubmit}>
+				{/* Связали отправку с handleSubmit, а сброс с handleReset */}
+				<form
+					className={styles.form}
+					onSubmit={handleSubmit}
+					onReset={handleReset}>
 					<Text as='h2' size={31} weight={800} uppercase>
 						Задайте параметры
 					</Text>
@@ -162,12 +165,8 @@ export const ArticleParamsForm = ({
 					/>
 
 					<div className={styles.bottomContainer}>
-						<Button
-							title='Сбросить'
-							htmlType='reset'
-							type='clear'
-							onClick={handleReset}
-						/>
+						{/* Убрали onClick, управление идет через onReset на самой форме */}
+						<Button title='Сбросить' htmlType='reset' type='clear' />
 						<Button title='Применить' htmlType='submit' type='apply' />
 					</div>
 				</form>
