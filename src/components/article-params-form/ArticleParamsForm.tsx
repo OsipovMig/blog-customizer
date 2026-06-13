@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, FormEvent } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import clsx from 'clsx';
 import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
@@ -34,6 +34,7 @@ export const ArticleParamsForm = ({
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const formRef = useRef<HTMLDivElement>(null);
 
+	// Все состояния настроены строго с индексами [0] по вашему правилу
 	const [fontFamily, setFontFamily] = useState<OptionType>(
 		fontFamilyOptions[0]
 	);
@@ -45,10 +46,12 @@ export const ArticleParamsForm = ({
 	const [contentWidth, setContentWidth] = useState<OptionType>(
 		contentWidthArr[0]
 	);
+
 	const toggleForm = () => {
 		setIsOpen(!isOpen);
 	};
 
+	// Синхронизация формы с текущим состоянием статьи при открытии сайдбара
 	useEffect(() => {
 		if (isOpen) {
 			setFontFamily(currentAppState.fontFamilyOption);
@@ -59,10 +62,8 @@ export const ArticleParamsForm = ({
 		}
 	}, [isOpen, currentAppState]);
 
-	// Функция отправки формы (Применить)
-	const handleSubmit = (event: FormEvent) => {
-		event.preventDefault();
-
+	// Функция применения настроек (чистая () => void)
+	const handleSubmit = () => {
 		const newState: ArticleStateType = {
 			fontFamilyOption: fontFamily,
 			fontSizeOption: fontSize,
@@ -74,10 +75,8 @@ export const ArticleParamsForm = ({
 		onApply(newState);
 	};
 
-	// Функция сброса формы (Сбросить) — теперь принимает FormEvent
-	const handleReset = (event: FormEvent) => {
-		event.preventDefault(); // Запрещаем стандартный жесткий HTML-сброс
-
+	// Функция сброса настроек (чистая () => void)
+	const handleReset = () => {
 		setFontFamily(defaultArticleState.fontFamilyOption);
 		setFontSize(defaultArticleState.fontSizeOption);
 		setFontColor(defaultArticleState.fontColor);
@@ -87,6 +86,7 @@ export const ArticleParamsForm = ({
 		onApply(defaultArticleState);
 	};
 
+	// Закрытие по клику вне сайдбара
 	useEffect(() => {
 		if (!isOpen) return;
 
@@ -107,11 +107,7 @@ export const ArticleParamsForm = ({
 			<ArrowButton isOpen={isOpen} onClick={toggleForm} />
 			<aside
 				className={clsx(styles.container, isOpen && styles.container_open)}>
-				{/* Связали отправку с handleSubmit, а сброс с handleReset */}
-				<form
-					className={styles.form}
-					onSubmit={handleSubmit}
-					onReset={handleReset}>
+				<form className={styles.form} onSubmit={(e) => e.preventDefault()}>
 					<Text as='h2' size={31} weight={800} uppercase>
 						Задайте параметры
 					</Text>
@@ -165,9 +161,18 @@ export const ArticleParamsForm = ({
 					/>
 
 					<div className={styles.bottomContainer}>
-						{/* Убрали onClick, управление идет через onReset на самой форме */}
-						<Button title='Сбросить' htmlType='reset' type='clear' />
-						<Button title='Применить' htmlType='submit' type='apply' />
+						<Button
+							title='Сбросить'
+							htmlType='button'
+							type='clear'
+							onClick={handleReset}
+						/>
+						<Button
+							title='Применить'
+							htmlType='button'
+							type='apply'
+							onClick={handleSubmit}
+						/>
 					</div>
 				</form>
 			</aside>
