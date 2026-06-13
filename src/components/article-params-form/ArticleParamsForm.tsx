@@ -90,10 +90,9 @@ export const ArticleParamsForm = () => {
 						onChange={setBackgroundColor}
 						title='Цвет фона'
 					/>
-					<RadioGroup
-						name='contentWidth'
-						options={contentWidthArr}
+					<Select
 						selected={contentWidth}
+						options={contentWidthArr}
 						onChange={setContentWidth}
 						title='Ширина контента'
 					/>
