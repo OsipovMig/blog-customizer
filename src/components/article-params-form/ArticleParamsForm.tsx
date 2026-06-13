@@ -9,6 +9,7 @@ import { RadioGroup } from 'src/ui/radio-group';
 import {
 	fontFamilyOptions,
 	fontSizeOptions,
+	fontColors,
 	OptionType,
 } from 'src/constants/articleProps';
 
@@ -22,6 +23,7 @@ export const ArticleParamsForm = () => {
 		fontFamilyOptions[0]
 	);
 	const [fontSize, setFontSize] = useState<OptionType>(fontSizeOptions[0]);
+	const [fontColor, setFontColor] = useState<OptionType>(fontColors[0]);
 
 	const toggleForm = () => {
 		setIsOpen(!isOpen);
@@ -68,6 +70,12 @@ export const ArticleParamsForm = () => {
 						title='Размер шрифта'
 					/>
 
+					<Select
+						selected={fontColor}
+						options={fontColors}
+						onChange={setFontColor}
+						title='Цвет шрифта'
+					/>
 					<div className={styles.bottomContainer}>
 						<Button title='Сбросить' htmlType='reset' type='clear' />
 						<Button title='Применить' htmlType='submit' type='apply' />
