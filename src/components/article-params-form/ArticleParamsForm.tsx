@@ -10,6 +10,8 @@ import {
 	fontFamilyOptions,
 	fontSizeOptions,
 	fontColors,
+	backgroundColors,
+	contentWidthArr,
 	OptionType,
 } from 'src/constants/articleProps';
 
@@ -24,6 +26,12 @@ export const ArticleParamsForm = () => {
 	);
 	const [fontSize, setFontSize] = useState<OptionType>(fontSizeOptions[0]);
 	const [fontColor, setFontColor] = useState<OptionType>(fontColors[0]);
+	const [backgroundColor, setBackgroundColor] = useState<OptionType>(
+		backgroundColors[0]
+	);
+	const [contentWidth, setContentWidth] = useState<OptionType>(
+		contentWidthArr[0]
+	);
 
 	const toggleForm = () => {
 		setIsOpen(!isOpen);
@@ -75,6 +83,19 @@ export const ArticleParamsForm = () => {
 						options={fontColors}
 						onChange={setFontColor}
 						title='Цвет шрифта'
+					/>
+					<Select
+						selected={backgroundColor}
+						options={backgroundColors}
+						onChange={setBackgroundColor}
+						title='Цвет фона'
+					/>
+					<RadioGroup
+						name='contentWidth'
+						options={contentWidthArr}
+						selected={contentWidth}
+						onChange={setContentWidth}
+						title='Ширина контента'
 					/>
 					<div className={styles.bottomContainer}>
 						<Button title='Сбросить' htmlType='reset' type='clear' />
